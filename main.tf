@@ -1058,7 +1058,9 @@ resource "aws_s3_bucket" "elb_logs" {
 }
 
 resource "aws_s3_bucket_public_access_block" "elb_logs" {
-  bucket = aws_s3_bucket.elb_logs.id
+  count = var.tier == "WebServer" && var.environment_type == "LoadBalanced" && var.loadbalancer_type != "network" ? 1 : 0
+
+  bucket = aws_s3_bucket.elb_logs[count.index].id
 
   block_public_policy = true
   block_public_acls = true
