@@ -639,7 +639,7 @@ resource "aws_elastic_beanstalk_environment" "default" {
   setting {
     namespace = "aws:elasticbeanstalk:command"
     name      = "DeploymentPolicy"
-    value     = var.rolling_update_type == "Immutable" ? "Immutable" : "Rolling"
+    value = var.deployment_policy != "" ? var.deployment_policy : (var.rolling_update_type == "Immutable" ? "Immutable" : "Rolling")
     resource  = ""
   }
 
@@ -994,6 +994,30 @@ data "aws_iam_policy_document" "elb_logs" {
 
     effect = "Allow"
   }
+
+  statement {
+    sid = "DenyNonSSLRequests"
+
+    actions = [
+      "s3:*"
+    ]
+
+    effect = "Deny"
+
+    resources = [
+      "arn:aws:s3:::${module.this.id}-eb-loadbalancer-logs",
+      "arn:aws:s3:::${module.this.id}-eb-loadbalancer-logs/*"
+    ]
+
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+
+      values = [
+        "false"
+      ]
+    }
+  }
 }
 
 resource "aws_s3_bucket" "elb_logs" {
@@ -1031,6 +1055,15 @@ resource "aws_s3_bucket" "elb_logs" {
       target_prefix = "logs/${module.this.id}/"
     }
   }
+}
+
+resource "aws_s3_bucket_public_access_block" "elb_logs" {
+  bucket = aws_s3_bucket.elb_logs.id
+
+  block_public_policy = true
+  block_public_acls = true
+  ignore_public_acls = true
+  restrict_public_buckets = true
 }
 
 module "dns_hostname" {
