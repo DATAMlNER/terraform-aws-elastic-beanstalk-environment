@@ -1018,7 +1018,10 @@ data "aws_iam_policy_document" "elb_logs" {
       ]
     }
 
-    principals = "*"
+    principals {
+      type = "*"
+      identifiers = ["*"]
+    }
   }
 }
 
