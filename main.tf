@@ -996,10 +996,10 @@ data "aws_iam_policy_document" "elb_logs" {
   }
 
   statement {
-    sid = "DenyNonSSLRequests"
+    sid = "AllowSSLRequestsOnly"
 
     actions = [
-      "s3:*"
+      "s3:*",
     ]
 
     effect = "Deny"
@@ -1019,8 +1019,8 @@ data "aws_iam_policy_document" "elb_logs" {
     }
 
     principals {
+      type = "AWS"
       identifiers = ["*"]
-      type = ""
     }
   }
 }
